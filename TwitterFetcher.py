@@ -1,98 +1,90 @@
-# Import Libraries
-from textblob import TextBlob
-import sys
-import tweepy
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
-import os
-import nltk
-import pycountry
 import re
-import string
-from wordcloud import WordCloud, STOPWORDS
-from PIL import Image
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from langdetect import detect
-from nltk.stem import SnowballStemmer
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from sklearn.feature_extraction.text import CountVectorizer
+import tweepy
+from tweepy import OAuthHandler
+from textblob import TextBlob
 
-# Authentication
-consumerKey = “Type your consumer key here”
-consumerSecret = “Type your consumer secret here”
-accessToken = “Type your accedd token here”
-accessTokenSecret = “Type your access token secret here”
-auth = tweepy.OAuthHandler(consumerKey, consumerSecret)
-auth.set_access_token(accessToken, accessTokenSecret)
+global get_tweet_sentiment
+global TextBlob
+global trim_tweet
+global re
+
+DEFAULT_ENCODING = 'utf-8'
+
+
+def trim_tweet(tweet):
+    return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t]) | (\w+:\/\/\S+)", " ", tweet).split())
+
+
+def get_tweet_sentiment(tweet):
+    # create TextBlob object of passed tweet text
+    analysis = TextBlob(trim_tweet(tweet).decode('ascii', 'ignore').encode("ascii"))
+    # set sentiment
+    if analysis.sentiment.polarity > 0:
+        return 'positive'
+    elif analysis.sentiment.polarity == 0:
+        return 'neutral'
+    else:
+        return 'negative'
+
+
+def get_tweets(api, query, count=10):
+    # empty list to store parsed tweets
+    tweets = []
+
+    try:
+        # call twitter api to fetch tweets
+        fetched_tweets = api.search_tweets(q=query, count=count)
+
+        # parsing tweets one by one
+        for tweet in fetched_tweets:
+            # empty dictionary to store required params of a tweet
+            parsed_tweet = {}
+            parsed_tweet['text'] = tweet.text.encode('utf-8')
+            # saving sentiment of tweet
+            parsed_tweet['sentiment'] = get_tweet_sentiment(tweet.text.encode('utf-8'))
+
+            # appending parsed tweet to tweets list
+            if tweet.retweet_count > 0:
+                # if tweet has retweets, ensure that it is appended only once
+                if parsed_tweet not in tweets:
+                    tweets.append(parsed_tweet)
+            else:
+                tweets.append(parsed_tweet)
+
+        # return parsed tweets
+        return tweets
+
+    except tweepy.errors.TweepError as e:
+        # print error (if any)
+        print("Error : " + str(e))
+
+
+# keys and tokens from the Twitter Dev Console
+consumer_key = 'dN0g9U8BVlURKs65o8rP5mnhE'
+consumer_secret = 'pnsnUCnbDd1M1BIHg45IMi3IPbjaTkDXu6HLq9XNpiCB7fHiq6'
+access_token = '1482383090274254864-8Hi0J2Bu4yBJcqUeJ2NjLSEd5ufAy1'
+access_token_secret = 'aoUMItsal3nRxd2eDoI725SS7E4z1kOdMgK3XyQ1p24m8'
+
+auth = OAuthHandler(consumer_key, consumer_secret)
+# set access token and secret
+auth.set_access_token(access_token, access_token_secret)
+# create tweepy API object to fetch tweets
 api = tweepy.API(auth)
+tweets = get_tweets(api, query='Novak Djokovic', count=1000)
+ptweets = [tweet for tweet in tweets if tweet['sentiment'] == 'positive']
+# percentage of positive tweets
+print("Positive tweets percentage: {} %".format(100 * len(ptweets) / len(tweets)))
+# picking negative tweets from tweets
+ntweets = [tweet for tweet in tweets if tweet['sentiment'] == 'negative']
+# percentage of negative tweets
+print("Negative tweets percentage: {} %".format(100 * len(ntweets) / len(tweets)))
 
+# printing first 5 positive tweets
+print("\n\nPositive tweets:")
+for tweet in ptweets[:5]:
+    print(tweet['text'])
 
-# Sentiment Analysis
-def percentage(part, whole):
-    return 100 * float(part) / float(whole)
-
-
-keyword = input(“Please
-enter
-keyword or hashtag
-to
-search: “)
-noOfTweet = int(input(“Please
-enter
-how
-many
-tweets
-to
-analyze: “))
-tweets = tweepy.Cursor(api.search, q=keyword).items(noOfTweet)
-positive = 0
-negative = 0
-neutral = 0
-polarity = 0
-tweet_list = []
-neutral_list = []
-negative_list = []
-positive_list = []
-for tweet in tweets:
-
-    # print(tweet.text)
-    tweet_list.append(tweet.text)
-    analysis = TextBlob(tweet.text)
-    score = SentimentIntensityAnalyzer().polarity_scores(tweet.text)
-    neg = score[‘neg’]
-    neu = score[‘neu’]
-    pos = score[‘pos’]
-    comp = score[‘compound’]
-    polarity += analysis.sentiment.polarity
-
-    if neg > pos:
-        negative_list.append(tweet.text)
-    negative += 1
-elif pos > neg:
-positive_list.append(tweet.text)
-positive += 1
-
-elif pos == neg:
-neutral_list.append(tweet.text)
-neutral += 1
-positive = percentage(positive, noOfTweet)
-negative = percentage(negative, noOfTweet)
-neutral = percentage(neutral, noOfTweet)
-polarity = percentage(polarity, noOfTweet)
-positive = format(positive, ‘.1
-f’)
-negative = format(negative, ‘.1
-f’)
-neutral = format(neutral, ‘.1
-f’)
-
-#Number of Tweets (Total, Positive, Negative, Neutral)
-tweet_list = pd.DataFrame(tweet_list)
-neutral_list = pd.DataFrame(neutral_list)
-negative_list = pd.DataFrame(negative_list)
-positive_list = pd.DataFrame(positive_list)
-print(“total number: “,len(tweet_list))
-print(“positive number: “,len(positive_list))
-print(“negative number: “, len(negative_list))
-print(“neutral number: “,len(neutral_list))
+# printing first 5 negative tweets
+print("\n\nNegative tweets:")
+for tweet in ntweets[:5]:
+    print(tweet['text'])
