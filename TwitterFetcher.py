@@ -4,6 +4,8 @@ from tweepy import OAuthHandler
 import pandas as pd
 from textblob import TextBlob
 import re
+#import mysql.connector
+#from mysql.connector import Error
 
 # Authentication
 consumerKey = ''
@@ -16,7 +18,7 @@ api = tweepy.API(auth)
 
 
 def clean_tweet(tweet):
-    return ' '.join(re.sub(r"(@[A-Za-z0-9_]+)|(#[A-Za-z0-9_]+)|([^0-9A-Za-z \t])|(http\S+)|(www.\S+)", " ", tweet))
+    return ''.join(re.sub(r"(@[A-Za-z0-9_]+)|(#[A-Za-z0-9_]+)|(http\S+)|(www.\S+)|([^0-9A-Za-z\t])|(\w+:\/\/\S+)", " ", tweet))
 
 def get_tweet_sentiment(tweet):
     # create TextBlob object of passed tweet text
@@ -29,11 +31,14 @@ def get_tweet_sentiment(tweet):
     else:
         return 'negative'
 
+def join_hstg(hstg):
+    return ' '.join(hstg)
+
 fetch_tweets = []
 players = ['Nadal','Tsitsipas','Djokovic']
 limit=1000
 for player in players :
-    tweets = tweepy.Cursor(api.search_tweets, q=player, count=100, tweet_mode='extended').items(limit)
+    tweets = tweepy.Cursor(api.search_tweets, q=player+'-filter:retweets', count=100, tweet_mode='extended',lang="en").items(limit)
 
     for tweet in tweets:
         # find the hashtags in the tweet
@@ -43,21 +48,34 @@ for player in players :
 
         tweet_dict = {'searchParam': player,
             'user_name': tweet.user.screen_name,
-            'text': tweet.full_text,
-            'hashtags': hstgs,
+            'text': clean_tweet(tweet.full_text),
+            'hashtags': join_hstg(hstgs),
             'date': tweet.created_at,
             'location': tweet.user.location,
             'number_of_followers':tweet.user.followers_count,
             'number_of tweets':tweet.user.statuses_count,
             'sentiment':get_tweet_sentiment(tweet.full_text)
             }
-        if tweet.retweet_count > 0:
-            # if tweet has retweets, ensure that it is appended only once
-            if tweet_dict not in tweets:
-                fetch_tweets.append(tweet_dict)
-        else:
-            fetch_tweets.append(tweet_dict)
+
+        fetch_tweets.append(tweet_dict)
 
 
 df_tweets = pd.DataFrame(fetch_tweets)
 print(df_tweets)
+
+
+#try:
+    #db = mysql.connector.connect(host='	127.0.0.1', database='world', user='root', password='')
+    #if db.is_connected():
+        #print("CONNECTED TO MYSQL DATABASE!")
+        #cur = db.cursor()
+    #q = "SELECT name, population FROM country WHERE population>20000000;"
+    #cur.execute(q)
+    #for (name, population) in cur:
+        #print("{} {}".format(name, population))
+
+#except Error as e:
+    #print(e)
+#finally:
+    #db.close()
+    #print("DATABASE CONNECTION CLOSED!")
