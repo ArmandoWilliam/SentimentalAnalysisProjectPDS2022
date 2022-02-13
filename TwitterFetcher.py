@@ -4,8 +4,10 @@ from tweepy import OAuthHandler
 import pandas as pd
 from textblob import TextBlob
 import re
-#import mysql.connector
-#from mysql.connector import Error
+import mysql.connector
+from mysql.connector import Error
+from sqlalchemy import create_engine
+import pymysql
 
 # Authentication
 consumerKey = ''
@@ -36,7 +38,7 @@ def join_hstg(hstg):
 
 fetch_tweets = []
 players = ['Nadal','Tsitsipas','Djokovic']
-limit=1000
+limit=100
 for player in players :
     tweets = tweepy.Cursor(api.search_tweets, q=player+'-filter:retweets', count=100, tweet_mode='extended',lang="en").items(limit)
 
@@ -53,7 +55,8 @@ for player in players :
             'date': tweet.created_at,
             'location': tweet.user.location,
             'number_of_followers':tweet.user.followers_count,
-            'number_of tweets':tweet.user.statuses_count,
+            'number_of_tweets':tweet.user.statuses_count,
+            'number_of_account_retweets':tweet.retweet_count,
             'sentiment':get_tweet_sentiment(tweet.full_text)
             }
 
@@ -61,21 +64,28 @@ for player in players :
 
 
 df_tweets = pd.DataFrame(fetch_tweets)
-print(df_tweets)
 
+#print(df_tweets)
+
+# create sqlalchemy engine
+engine = create_engine("mysql+pymysql://{user}:{pw}@localhost/{db}"
+                       .format(user="root",
+                               pw="",
+                               db="twitterdb"))
+
+# Insert whole DataFrame into MySQL
+df_tweets.to_sql('tweet_sentiment', con = engine, index=False,  if_exists = 'append', chunksize = 1000)
 
 #try:
-    #db = mysql.connector.connect(host='	127.0.0.1', database='world', user='root', password='')
-    #if db.is_connected():
-        #print("CONNECTED TO MYSQL DATABASE!")
-        #cur = db.cursor()
-    #q = "SELECT name, population FROM country WHERE population>20000000;"
-    #cur.execute(q)
-    #for (name, population) in cur:
-        #print("{} {}".format(name, population))
+#    db = mysql.connector.connect(host='	127.0.0.1', database='twitterdb', user='root', password='f18_kd0=?')
+#    if db.is_connected():
+#        print("connected to mysql database!")
+#        cur = db.cursor()
+#    q = "insert into tweet_sentiment (user_name, text, hashtags, date, location, number_of_followers, number_of_tweets, number_of_account_retweets, sentiment) values (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+#    cur.execute(q)
 
-#except Error as e:
-    #print(e)
+#except error as e:
+#    print(e)
 #finally:
-    #db.close()
-    #print("DATABASE CONNECTION CLOSED!")
+#    db.close()
+#    print("database connection closed!")
