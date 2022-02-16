@@ -5,10 +5,10 @@ import re
 import mysql.connector
 
 # Authentication
-consumerKey = 'QRqfS9CB0HVIRc4quS87IZHNG'
-consumerSecret = 'LmVxOncvxtYHk9oodKhC1DXiLnfiGj5DynsUhRpwHQ0mxPltDS'
-accessToken = '774595740-zPtsJk7CacapPzigJlNY5ogSXlPkGMR9BGjVCnQi'
-accessTokenSecret = 'P6oKNReEFXx0dx0rCNj4s4y2MjUfvRLkJ9YpMRw69Xwre'
+consumerKey = ''
+consumerSecret = ''
+accessToken = ''
+accessTokenSecret = ''
 auth = tweepy.OAuthHandler(consumerKey, consumerSecret)
 auth.set_access_token(accessToken, accessTokenSecret)
 api = tweepy.API(auth)
@@ -41,7 +41,7 @@ players = ['Nadal', 'Tsitsipas', 'Djokovic']
 limit = 1000
 
 try:
-    db = mysql.connector.connect(host='	127.0.0.1', database='twitterdb', user='root', password='f18_kd0=?')
+    db = mysql.connector.connect(host='	127.0.0.1', database='twitterdb', user='root', password='')
     if db.is_connected():
         print("connected to mysql database!")
         cur = db.cursor()
