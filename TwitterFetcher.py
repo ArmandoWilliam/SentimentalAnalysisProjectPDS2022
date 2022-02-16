@@ -5,10 +5,10 @@ import re
 import mysql.connector
 
 # Authentication
-consumerKey = ''
-consumerSecret = ''
-accessToken = ''
-accessTokenSecret = ''
+consumerKey = 'QRqfS9CB0HVIRc4quS87IZHNG'
+consumerSecret = 'LmVxOncvxtYHk9oodKhC1DXiLnfiGj5DynsUhRpwHQ0mxPltDS'
+accessToken = '774595740-zPtsJk7CacapPzigJlNY5ogSXlPkGMR9BGjVCnQi'
+accessTokenSecret = 'P6oKNReEFXx0dx0rCNj4s4y2MjUfvRLkJ9YpMRw69Xwre'
 auth = tweepy.OAuthHandler(consumerKey, consumerSecret)
 auth.set_access_token(accessToken, accessTokenSecret)
 api = tweepy.API(auth)
@@ -41,7 +41,7 @@ players = ['Nadal', 'Tsitsipas', 'Djokovic']
 limit = 1000
 
 try:
-    db = mysql.connector.connect(host='	127.0.0.1', database='twitterdb', user='root', password='')
+    db = mysql.connector.connect(host='	127.0.0.1', database='twitterdb', user='root', password='f18_kd0=?')
     if db.is_connected():
         print("connected to mysql database!")
         cur = db.cursor()
@@ -50,6 +50,7 @@ try:
            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
 
     for player in players:
+        counter = limit
         tweets = tweepy.Cursor(api.search_tweets, q=player + '-filter:retweets', count=100, tweet_mode='extended',
                                lang="en").items(limit)
         for tweet in tweets:
@@ -89,11 +90,12 @@ try:
                 number_of_account_retweets = tweet.retweet_count
                 sentiment = get_tweet_sentiment(tweet.full_text)
 
-            insert_tuple = (player, user_name, text, hashtags, date, location, number_of_followers, number_of_tweets,
+                insert_tuple = (player, user_name, text, hashtags, date, location, number_of_followers, number_of_tweets,
                             number_of_account_retweets, sentiment)
-            result = cur.execute(q, insert_tuple)
-            db.commit()
-            print("Record inserted successfully into tweets_table table")
+                result = cur.execute(q, insert_tuple)
+                db.commit()
+                print(f'Record inserted successfully into tweets_table table still {counter} record to insert')
+                counter -= 1
 
 except mysql.connector.Error as error:
     db.rollback()
