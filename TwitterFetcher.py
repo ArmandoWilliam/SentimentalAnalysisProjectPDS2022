@@ -1,14 +1,15 @@
 import time
 import tweepy
+from mysql.connector import Error
 from textblob import TextBlob
 import re
 import mysql.connector
 
 # Authentication
-consumerKey = ''
-consumerSecret = ''
-accessToken = ''
-accessTokenSecret = ''
+consumerKey = 'QRqfS9CB0HVIRc4quS87IZHNG'
+consumerSecret = 'LmVxOncvxtYHk9oodKhC1DXiLnfiGj5DynsUhRpwHQ0mxPltDS'
+accessToken = '774595740-zPtsJk7CacapPzigJlNY5ogSXlPkGMR9BGjVCnQi'
+accessTokenSecret = 'P6oKNReEFXx0dx0rCNj4s4y2MjUfvRLkJ9YpMRw69Xwre'
 auth = tweepy.OAuthHandler(consumerKey, consumerSecret)
 auth.set_access_token(accessToken, accessTokenSecret)
 api = tweepy.API(auth)
@@ -37,11 +38,11 @@ def join_hstg(hstg):
 
 
 fetch_tweets = []
-players = ['Nadal', 'Tsitsipas', 'Djokovic']
+players = ['Djokovic', 'Tsitsipas', 'Nadal']
 limit = 1000
 
 try:
-    db = mysql.connector.connect(host='	127.0.0.1', database='twitterdb', user='root', password='')
+    db = mysql.connector.connect(host='	127.0.0.1', database='twitterdb', user='root', password='f18_kd0=?')
     if db.is_connected():
         print("connected to mysql database!")
         cur = db.cursor()
@@ -54,52 +55,51 @@ try:
         tweets = tweepy.Cursor(api.search_tweets, q=player + '-filter:retweets', count=100, tweet_mode='extended',
                                lang="en").items(limit)
         for tweet in tweets:
-            if not tweet.retweeted and ('RT @' not in tweet.full_text):
-                # find the hashtags in the tweet
-                hstgs = []
-                for hstg in tweet.entities['hashtags']:
-                    hstgs.append(hstg['text'])
+            # find the hashtags in the tweet
+            hstgs = []
+            for hstg in tweet.entities['hashtags']:
+                hstgs.append(hstg['text'])
 
-                # ------------------------------------ WITH THE DATAFRAME ----------------------------------------------#
+            # ------------------------------------ WITH THE DATAFRAME ----------------------------------------------#
 
-                #                tweet_dict = {'searchParam': player,
-                #                              'user_name': tweet.user.screen_name,
-                #                              'text': clean_tweet(tweet.full_text),
-                #                              'hashtags': join_hstg(hstgs),
-                #                              'date': tweet.created_at,
-                #                              'location': tweet.user.location,
-                #                              'number_of_followers': tweet.user.followers_count,
-                #                              'number_of_tweets': tweet.user.statuses_count,
-                #                              'number_of_account_retweets': tweet.retweet_count,
-                #                              'sentiment': get_tweet_sentiment(tweet.full_text)
-                #                              }
+            #                tweet_dict = {'searchParam': player,
+            #                              'user_name': tweet.user.screen_name,
+            #                              'text': clean_tweet(tweet.full_text),
+            #                              'hashtags': join_hstg(hstgs),
+            #                              'date': tweet.created_at,
+            #                              'location': tweet.user.location,
+            #                              'number_of_followers': tweet.user.followers_count,
+            #                              'number_of_tweets': tweet.user.statuses_count,
+            #                              'number_of_account_retweets': tweet.retweet_count,
+            #                              'sentiment': get_tweet_sentiment(tweet.full_text)
+            #                              }
 
-                #                fetch_tweets.append(tweet_dict)
-                #                df_tweets = pd.DataFrame(fetch_tweets)
-                # print(df_tweets)
+            #                fetch_tweets.append(tweet_dict)
+            #                df_tweets = pd.DataFrame(fetch_tweets)
+            # print(df_tweets)
 
-                # ------------------------------------ WITH THE DATAFRAME ----------------------------------------------#
+            # ------------------------------------ WITH THE DATAFRAME ----------------------------------------------#
 
-                user_name = tweet.user.screen_name
-                text = clean_tweet(tweet.full_text)
-                hashtags = join_hstg(hstgs)
-                date = tweet.created_at
-                location = tweet.user.location
-                number_of_followers = tweet.user.followers_count
-                number_of_tweets = tweet.user.statuses_count
-                number_of_account_retweets = tweet.retweet_count
-                sentiment = get_tweet_sentiment(tweet.full_text)
+            user_name = tweet.user.screen_name
+            text = clean_tweet(tweet.full_text)
+            hashtags = join_hstg(hstgs)
+            date = tweet.created_at
+            location = tweet.user.location
+            number_of_followers = tweet.user.followers_count
+            number_of_tweets = tweet.user.statuses_count
+            number_of_account_retweets = tweet.retweet_count
+            sentiment = get_tweet_sentiment(tweet.full_text)
 
-                insert_tuple = (player, user_name, text, hashtags, date, location, number_of_followers, number_of_tweets,
+            insert_tuple = (player, user_name, text, hashtags, date, location, number_of_followers, number_of_tweets,
                             number_of_account_retweets, sentiment)
-                result = cur.execute(q, insert_tuple)
-                db.commit()
-                print(f'Record inserted successfully into tweets_table table still {counter} record to insert')
-                counter -= 1
+            result = cur.execute(q, insert_tuple)
+            db.commit()
+            print(f'Record inserted successfully into tweets_table table still {counter} record to insert')
+            counter -= 1
 
-except mysql.connector.Error as error:
+except Error as error:
     db.rollback()
-    print("Failed to insert into MySQL table {}".format(error))
+    print('Failed to insert into MySQL table {db}'.format(error))
 
 finally:
     # closing database connection.
