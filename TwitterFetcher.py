@@ -41,6 +41,7 @@ fetch_tweets = []
 players = ['Djokovic', 'Tsitsipas', 'Nadal']
 limit = 1000
 
+#connection to the local database, creation of the cursor and the query
 try:
     db = mysql.connector.connect(host='	127.0.0.1', database='twitterdb', user='root', password='')
     if db.is_connected():
@@ -49,7 +50,7 @@ try:
     q = """INSERT INTO
            tweet_sentiment (searchParam, user_name, text, hashtags, date, location, number_of_followers, number_of_tweets, number_of_account_retweets, sentiment)
            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-
+    #inserting in the databse each fetched tweet from the twitter API and his "sentiment" founde with our function
     for player in players:
         counter = limit
         tweets = tweepy.Cursor(api.search_tweets, q=player + '-filter:retweets', count=100, tweet_mode='extended',

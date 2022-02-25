@@ -30,14 +30,14 @@ def draw_datetime_sentiment_influencer(list_of_date_sentiment, tennis_playre_nam
     )
     return figure
 
-
+#modify the dictionary incrementing the counter of the tweets
 def sentiment_counter_by_date_dic_modifier(date, dict_of_dates):
     if date in dict_of_dates:
         dict_of_dates[date] += 1
     else:
         dict_of_dates[date] = 0
 
-
+#calculate the percentage of the tweets for a specific date
 def sentiment_percentage_dic_modifier(dict_of_dates, total_sentiment_counter):
     for date_key in dict_of_dates:
         date_total = dict_of_dates.get(date_key)
@@ -49,7 +49,7 @@ def sentiment_percentage_dic_modifier(dict_of_dates, total_sentiment_counter):
 
 
 try:
-    db = mysql.connector.connect(host='	127.0.0.1', database='twitterdb', user='root', password='f18_kd0=?')
+    db = mysql.connector.connect(host='	127.0.0.1', database='twitterdb', user='root', password='')
     if db.is_connected():
         print("CONNECTED TO MYSQL DATABASE!")
         cur = db.cursor()
@@ -267,6 +267,7 @@ try:
 
         draw_datetime_sentiment_influencer(dates_dic_Djokovic_neutral.items(), 'Djokovic', 'Neutral')
         draw_datetime_sentiment_influencer(dates_dic_Djokovic_positive.items(), 'Djokovic', 'Positive')
+        print(dates_dic_Djokovic_negative)
         draw_datetime_sentiment_influencer(dates_dic_Djokovic_negative.items(), 'Djokovic', 'Negative')
         plt.show()
 
