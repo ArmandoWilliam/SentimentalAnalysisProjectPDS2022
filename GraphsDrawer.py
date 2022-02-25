@@ -9,7 +9,7 @@ players = ['Djokovic', 'Tsitsipas', 'Nadal']
 
 # method to draw a timeline with sentiment associated to the relative dates, for a single player
 def draw_datetime_sentiment(list_of_date_sentiment, tennis_playre_name, sentiment):
-    figure = plt.figure()
+    figure = plt.figure(figsize=(20, 10))
     axes = figure.add_subplot(1, 1, 1)
     axes.set_title("Percentage of " + sentiment + " tweets for " + tennis_playre_name)
     axes.bar(
@@ -20,7 +20,7 @@ def draw_datetime_sentiment(list_of_date_sentiment, tennis_playre_name, sentimen
     return figure
 
 def draw_datetime_sentiment_influencer(list_of_date_sentiment, tennis_playre_name, sentiment):
-    figure = plt.figure()
+    figure = plt.figure(figsize=(20, 10))
     axes = figure.add_subplot(1, 1, 1)
     axes.set_title("Retweets of influencer tweets for " + tennis_playre_name + " with a " + sentiment + " sentiment")
     axes.bar(
@@ -81,7 +81,7 @@ try:
                 positive_counter += 1
             elif sentiment == "negative":
                 negative_counter += 1
-        figure = plt.figure()
+        figure = plt.figure(figsize=(20, 10))
         axes = figure.add_subplot(1, 1, 1)
         axes.set_title('Djokovic tweets counter')
         axes.bar([1, 2, 3], [neutral_counter, positive_counter, negative_counter],
@@ -101,7 +101,7 @@ try:
                 positive_counter += 1
             elif sentiment == "negative":
                 negative_counter += 1
-        figure = plt.figure()
+        figure = plt.figure(figsize=(20, 10))
         axes = figure.add_subplot(1, 1, 1)
         axes.set_title('Tsitsipas tweets counter')
         axes.bar([1, 2, 3], [neutral_counter, positive_counter, negative_counter],
@@ -121,7 +121,7 @@ try:
                 positive_counter += 1
             elif sentiment == "negative":
                 negative_counter += 1
-        figure = plt.figure()
+        figure = plt.figure(figsize=(20, 10))
         axes = figure.add_subplot(1, 1, 1)
         axes.set_title('Nadal tweets counter')
         axes.bar([1, 2, 3], [neutral_counter, positive_counter, negative_counter],
